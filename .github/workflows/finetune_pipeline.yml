@@ -1,0 +1,129 @@
+name: Gemini 3 Monthly Fine-tuning Pipeline
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Monthly run on the 1st
+  workflow_dispatch: # Manual trigger
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  data-extraction:
+    name: "Stage 1: Data Extraction"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m venv .venv
+          ./.venv/bin/pip install pymongo dnspython python-dotenv requests
+
+      - name: Data Extraction
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          ./.venv/bin/python scripts/extract_data.py
+
+      - name: Upload Data Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-data
+          path: data/
+          retention-days: 1
+
+  fine-tuning:
+    name: "Stage 2: Model Fine-tuning"
+    needs: data-extraction
+    runs-on: ubuntu-latest
+    outputs:
+      model_id: ${{ steps.finetune.outputs.model_id }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m venv .venv
+          ./.venv/bin/pip install "google-cloud-aiplatform>=1.38.0" google-cloud-storage python-dotenv
+
+      - name: Download Data Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: training-data
+          path: data/
+
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Fine-tuning
+        id: finetune
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+        run: |
+          ./.venv/bin/python scripts/finetune.py
+
+  validation:
+    name: "Stage 3: Model Validation"
+    needs: fine-tuning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m venv .venv
+          ./.venv/bin/pip install pymongo dnspython google-cloud-aiplatform python-dotenv requests
+
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Run Validation Suite
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          ./.venv/bin/python scripts/validate.py "${{ needs.fine-tuning.outputs.model_id }}"
+
+  deployment:
+    name: "Stage 4: Deployment"
+    needs: [fine-tuning, validation]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deployment
+        env:
+          DO_HOST: ${{ secrets.DO_HOST }}
+          DO_USER: ${{ secrets.DO_USER }}
+          DO_SSH_KEY_CONTENT: ${{ secrets.DO_SSH_KEY_CONTENT }}
+          DO_PATH: ${{ secrets.DO_PATH }}
+          NEW_MODEL_ID: "${{ needs.fine-tuning.outputs.model_id }}"
+        run: |
+          chmod +x scripts/deploy.sh
+          ./scripts/deploy.sh
