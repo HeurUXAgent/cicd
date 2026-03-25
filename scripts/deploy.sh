@@ -22,8 +22,7 @@ if [ -n "$DO_SSH_KEY_CONTENT" ]; then
 fi
 
 # Use SSH to update the .env file on the server
-# We assume the .env file has a line like REPORT_LLM=...
-ssh -o StrictHostKeyChecking=no "$DO_USER@$DO_HOST" << EOF
+ssh -o StrictHostKeyChecking=no "$DO_USER@$DO_HOST" << ENDSSH
   if [ -f "$DO_PATH" ]; then
     # Backup the .env file
     cp "$DO_PATH" "${DO_PATH}.bak"
@@ -33,30 +32,42 @@ ssh -o StrictHostKeyChecking=no "$DO_USER@$DO_HOST" << EOF
 
     # Get the app directory from the .env path
     APP_DIR=\$(dirname "$DO_PATH")
+    echo "App directory: \$APP_DIR"
 
     # Stop the running uvicorn process
     echo "Stopping existing uvicorn process..."
     pkill -f "uvicorn app.main:app" || echo "No existing uvicorn process found"
     sleep 2
 
-    # Restart uvicorn in the background
+    # Restart uvicorn using the venv
     echo "Restarting uvicorn..."
     cd "\$APP_DIR"
-    nohup env PYTHONPATH=. uvicorn app.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
-    sleep 2
+
+    # Activate venv and start uvicorn
+    if [ -d "\$APP_DIR/venv" ]; then
+      PYTHON="\$APP_DIR/venv/bin/python"
+    elif [ -d "\$APP_DIR/.venv" ]; then
+      PYTHON="\$APP_DIR/.venv/bin/python"
+    else
+      PYTHON="python"
+    fi
+
+    nohup env PYTHONPATH=. \$PYTHON -m uvicorn app.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
+    sleep 3
 
     # Verify it's running
     if pgrep -f "uvicorn app.main:app" > /dev/null; then
       echo "Uvicorn restarted successfully (PID: \$(pgrep -f 'uvicorn app.main:app'))"
     else
-      echo "Error: Uvicorn failed to start. Check uvicorn.log"
+      echo "Error: Uvicorn failed to start. Last 10 lines of uvicorn.log:"
+      tail -10 uvicorn.log
       exit 1
     fi
   else
     echo "Error: .env file not found at $DO_PATH"
     exit 1
   fi
-EOF
+ENDSSH
 
 if [ $? -eq 0 ]; then
     echo "Deployment successful!"
