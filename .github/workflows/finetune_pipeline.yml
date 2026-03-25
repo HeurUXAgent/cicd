@@ -3,7 +3,7 @@ name: Gemini 3 Monthly Fine-tuning Pipeline
 on:
   schedule:
     - cron: '0 0 1 * *' # Monthly run on the 1st
-  workflow_dispatch: # Manual trigger
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -95,7 +95,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m venv .venv
-          ./.venv/bin/pip install pymongo dnspython google-cloud-aiplatform python-dotenv requests
+          ./.venv/bin/pip install pymongo dnspython "google-cloud-aiplatform>=1.38.0" litellm python-dotenv requests
 
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
@@ -106,8 +106,11 @@ jobs:
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          VERTEXAI_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+          VERTEXAI_LOCATION: us-central1
+        working-directory: scripts
         run: |
-          ./.venv/bin/python scripts/validate.py "${{ needs.fine-tuning.outputs.model_id }}"
+          ../.venv/bin/python validate.py "${{ needs.fine-tuning.outputs.model_id }}"
 
   deployment:
     name: "Stage 4: Deployment"
