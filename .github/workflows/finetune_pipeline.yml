@@ -1,8 +1,8 @@
 name: Gemini 3 Monthly Fine-tuning Pipeline
 
 on:
-  schedule:
-    - cron: '0 0 1 * *' # Monthly run on the 1st
+  # schedule:
+  #   - cron: '0 0 1 * *' # Monthly run on the 1st
   workflow_dispatch:
 
 concurrency:

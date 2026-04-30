@@ -62,7 +62,6 @@ def trigger_tuning(dataset_uri):
     vertexai.init(project=PROJECT_ID, location=LOCATION)
 
     # Base model for supervised fine-tuning
-    # Supported models: gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.5-pro
     BASE_MODEL = "gemini-2.5-flash"
 
     print(f"Triggering SFT job for {BASE_MODEL}...")
