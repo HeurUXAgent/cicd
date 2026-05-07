@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 
 # Try the one from Downloads just for testing
-uri_downloads = "mongodb+srv://buddhimafernando:h2GFRMq4POGODI0z@wpclust.8vibaz2.mongodb.net/?retryWrites=true&w=majority&appName=WPClust"
+uri_downloads = "mongodb+srv://buddhimadevfernando_db_user:ax3eQWp0aPK6aopy@heuruxagent.rmrtpwr.mongodb.net/?appName=heurUXAgent"
 client = MongoClient(uri_downloads)
 
 try:
