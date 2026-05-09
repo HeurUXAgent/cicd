@@ -68,7 +68,7 @@ def trigger_tuning(dataset_uri):
     sft_job = sft.train(
         source_model=BASE_MODEL,
         train_dataset=dataset_uri,
-        tuned_model_display_name="gemini-3-report-v1",
+        tuned_model_display_name="gemini-3-report-v2",
         epochs=3,
         learning_rate_multiplier=1.0,
     )

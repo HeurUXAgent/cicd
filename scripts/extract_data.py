@@ -10,7 +10,7 @@ load_dotenv()
 # Configuration
 MONGO_URI = os.getenv("MONGODB_URI")
 DB_NAME = "heuruxagent_db"
-COLLECTION_NAME = "expert_validation_dataset" # Updated collection
+COLLECTION_NAME = "expert_validation_dataset_v2" 
 OUTPUT_DIR = Path("data")
 IMAGES_DIR = OUTPUT_DIR / "images"
 JSONL_FILE = OUTPUT_DIR / "tuning_data.jsonl"
