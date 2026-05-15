@@ -43,15 +43,15 @@ for model_id in formats_to_test:
             messages=[{"role": "user", "content": "Say hello in one sentence."}],
             max_tokens=50,
         )
-        print(f"✅ SUCCESS! Response: {response.choices[0].message.content}")
+        print(f"SUCCESS! Response: {response.choices[0].message.content}")
         print(f"   Model used: {response.model}")
         print(f"\n🎉 Working format: {model_id}")
         print(f"   Set this in your .env as: GEMINI_FEEDBACK_MODEL={model_id}")
         break
     except Exception as e:
-        print(f"❌ FAILED: {type(e).__name__}: {e}\n")
+        print(f"FAILED: {type(e).__name__}: {e}\n")
 else:
-    print("\n⚠️  None of the formats worked.")
+    print("\n None of the formats worked.")
     print("Check that:")
     print("  1. GOOGLE_APPLICATION_CREDENTIALS points to your service account JSON")
     print("  2. The service account has Vertex AI User role")
