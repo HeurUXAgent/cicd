@@ -11,7 +11,7 @@ load_dotenv()
 
 # Configuration
 PROJECT_ID = os.getenv("GCP_PROJECT_ID", "heuruxagent")
-LOCATION = "us-central1"  # Default region for Vertex AI tuning
+LOCATION = "us-central1"  
 BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", f"{PROJECT_ID}-tuning-data")
 DATA_DIR = Path("data")
 JSONL_FILE = DATA_DIR / "tuning_data.jsonl"
@@ -32,7 +32,7 @@ def upload_to_gcs(local_path, remote_path):
 
 
 def prepare_gcs_dataset():
-    # 1. Upload images and update JSONL with GCS URIs
+    # Upload images and update JSONL with GCS URIs
     examples = []
     with open(JSONL_FILE, 'r') as f:
         for line in f:
@@ -46,13 +46,13 @@ def prepare_gcs_dataset():
                     part["fileData"]["fileUri"] = gcs_uri
             examples.append(ex)
 
-    # 2. Save updated JSONL
+    # Save updated JSONL
     gcs_jsonl_path = DATA_DIR / "tuning_data_gcs.jsonl"
     with open(gcs_jsonl_path, 'w') as f:
         for ex in examples:
             f.write(json.dumps(ex) + '\n')
 
-    # 3. Upload JSONL to GCS
+    # Upload JSONL to GCS
     final_gcs_jsonl_uri = upload_to_gcs(str(gcs_jsonl_path), "tuning_data.jsonl")
     return final_gcs_jsonl_uri
 
@@ -105,8 +105,6 @@ def main():
         print(f"Tuned model endpoint: {tuned_endpoint}")
 
         # Output the tuned model endpoint for GitHub Actions
-        # LiteLLM format for fine-tuned Vertex AI Gemini: vertex_ai/gemini/<ENDPOINT_ID>
-        # tuned_endpoint is like: projects/.../locations/.../endpoints/1234567890
         endpoint_id = tuned_endpoint.split("/")[-1]
         crewai_model_id = f"vertex_ai/gemini/{endpoint_id}"
         print(f"CrewAI model identifier: {crewai_model_id}")

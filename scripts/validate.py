@@ -48,7 +48,6 @@ def get_validation_samples(count: int) -> list[dict]:
     db = client[DB_NAME]
     collection = db["evaluations"]
 
-    # Prefer expert-reviewed evaluations, fall back to completed ones with AI results
     cursor = collection.find(
         {
             "status": "completed",
@@ -249,11 +248,11 @@ def main():
     # Final verdict
     print(f"\n{'=' * 40}")
     if passed:
-        print(f"✅ VALIDATION PASSED (score: {avg_score:.2f} >= {comparison_target:.2f})")
+        print(f" VALIDATION PASSED (score: {avg_score:.2f} >= {comparison_target:.2f})")
         print("New model is approved for deployment.")
         sys.exit(0)
     else:
-        print(f"❌ VALIDATION FAILED (score: {avg_score:.2f} < {comparison_target:.2f})")
+        print(f" VALIDATION FAILED (score: {avg_score:.2f} < {comparison_target:.2f})")
         print("New model does NOT meet the quality bar. Deployment blocked.")
         sys.exit(1)
 

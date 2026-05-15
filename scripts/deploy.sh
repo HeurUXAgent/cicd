@@ -14,7 +14,7 @@ fi
 
 echo "Deploying new model ID: $NEW_MODEL_ID to $DO_HOST..."
 
-# Create a temporary SSH key if it's passed as content
+# Create a temporary SSH key 
 if [ -n "$DO_SSH_KEY_CONTENT" ]; then
     mkdir -p ~/.ssh
     echo "$DO_SSH_KEY_CONTENT" > ~/.ssh/id_ed25519

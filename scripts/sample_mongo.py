@@ -16,7 +16,7 @@ dbs = client.list_database_names()
 print(f"Databases: {dbs}")
 
 # Attempt to find the correct database. If not specified, we'll check common names.
-db_name = os.getenv("dbName", "garage_billing") # Defaulting to garage_billing if not set
+db_name = os.getenv("dbName", "garage_billing")
 if db_name not in dbs:
     print(f"Database {db_name} not found. Available: {dbs}")
     # Try to guess
