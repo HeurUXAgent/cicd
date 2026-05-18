@@ -45,7 +45,7 @@ for model_id in formats_to_test:
         )
         print(f"SUCCESS! Response: {response.choices[0].message.content}")
         print(f"   Model used: {response.model}")
-        print(f"\n🎉 Working format: {model_id}")
+        print(f"\n Working format: {model_id}")
         print(f"   Set this in your .env as: GEMINI_FEEDBACK_MODEL={model_id}")
         break
     except Exception as e:

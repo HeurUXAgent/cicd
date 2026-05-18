@@ -31,7 +31,7 @@ DB_NAME = "heuruxagent_db"
 JUDGE_MODEL = "gemini-2.5-pro"
 
 # Validation parameters
-SAMPLE_COUNT = 5  # Number of samples to validate
+SAMPLE_COUNT = 10  
 THRESHOLD = 7.0  # Minimum score to pass if no production baseline exists
 BASE_MODEL = "gemini-2.5-flash"  # The base model that was fine-tuned
 
@@ -164,7 +164,7 @@ def main():
     print()
 
     # Fetch validation samples
-    print("Step 1: Fetching validation samples from MongoDB...")
+    print("Fetching validation samples from MongoDB")
     samples = get_validation_samples(SAMPLE_COUNT)
 
     if not samples:
@@ -172,7 +172,7 @@ def main():
         sys.exit(1)
 
     # Generate + Judge each sample
-    print(f"\nStep 2: Evaluating {len(samples)} samples...")
+    print(f"\nEvaluating {len(samples)} samples")
     scores = []
 
     for i, doc in enumerate(samples, 1):
@@ -183,7 +183,7 @@ def main():
         print(f"\n--- Sample {i}/{len(samples)} (eval: {eval_id}) ---")
 
         # Generate report with the tuned model
-        print(f"  Generating report with tuned model...")
+        print(f"  Generating report with tuned model")
         model_output = generate_with_tuned_model(new_model_id, image_url)
 
         if not model_output:
@@ -236,7 +236,7 @@ def main():
     passed = avg_score >= comparison_target
 
     # Store metrics
-    print(f"\nStep 4: Storing metrics in MongoDB...")
+    print(f"\n Storing metrics in MongoDB...")
     store_model_metrics(
         model_id=new_model_id,
         base_model=BASE_MODEL,
